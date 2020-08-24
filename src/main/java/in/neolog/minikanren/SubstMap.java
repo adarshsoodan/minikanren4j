@@ -7,12 +7,13 @@ import io.vavr.collection.HashMap;
 import io.vavr.collection.Map;
 import io.vavr.control.Option;
 
-public class SubstMap {
+public class SubstMap implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     private static final SubstMap FAILED_INSTANCE = new SubstMap(false);
 
-    private final boolean valid;
-
+    private final boolean                 valid;
     private final Map<LVar, Serializable> map;
 
     public SubstMap() {
@@ -20,12 +21,21 @@ public class SubstMap {
         this.map = HashMap.empty();
     }
 
-    public SubstMap(Map<LVar, Serializable> init) {
+    public SubstMap(java.util.Map<LVar, Serializable> init) {
+        this.valid = true;
+        this.map = HashMap.ofAll(init);
+    }
+
+    private SubstMap(Map<LVar, Serializable> init) {
         this.valid = true;
         this.map = init;
     }
 
-    public SubstMap(boolean valid) {
+    public static SubstMap invalidMap() {
+        return FAILED_INSTANCE;
+    }
+
+    private SubstMap(boolean valid) {
         this.valid = valid;
         this.map = HashMap.empty();
     }

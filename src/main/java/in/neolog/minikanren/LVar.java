@@ -1,27 +1,29 @@
 package in.neolog.minikanren;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 public class LVar implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private final long id;
+    private final UUID id;
 
-    public LVar(long id) {
-        this.id = id;
+    public static LVar create() {
+        return new LVar();
     }
 
-    public long getId() {
+    private LVar() {
+        this.id = UUID.randomUUID();
+    }
+
+    public UUID getId() {
         return id;
     }
-    
+
     @Override
     public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = prime * result + (int) (id ^ (id >>> 32));
-        return result;
+        return id.hashCode();
     }
 
     @Override
@@ -33,7 +35,7 @@ public class LVar implements Serializable {
         if (getClass() != obj.getClass())
             return false;
         LVar other = (LVar) obj;
-        if (id != other.id)
+        if (!id.equals(other.id))
             return false;
         return true;
     }
@@ -43,5 +45,4 @@ public class LVar implements Serializable {
         return "LVar [id=" + id + "]";
     }
 
-    
 }
