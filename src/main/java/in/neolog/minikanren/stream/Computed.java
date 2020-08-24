@@ -3,7 +3,7 @@ package in.neolog.minikanren.stream;
 import java.util.Iterator;
 import java.util.function.Function;
 
-import com.google.common.collect.Iterators;
+import io.vavr.collection.List;
 
 public class Computed<T> implements LazyStream<T> {
 
@@ -33,7 +33,9 @@ public class Computed<T> implements LazyStream<T> {
 
     @Override
     public Iterator<T> streamToIter() {
-        return Iterators.concat(Iterators.singletonIterator(head), next.streamToIter());
+        return List.of(head)
+                   .iterator()
+                   .concat(next.streamToIter());
     }
 
 }
