@@ -1,19 +1,20 @@
 package in.neolog.minikanren.goal;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 import in.neolog.minikanren.SubstMap;
-import in.neolog.minikanren.stream.Empty;
-import in.neolog.minikanren.stream.Delayed;
-import in.neolog.minikanren.stream.LazyStream;
 import in.neolog.minikanren.stream.Computed;
+import in.neolog.minikanren.stream.Delayed;
+import in.neolog.minikanren.stream.Empty;
+import in.neolog.minikanren.stream.LazyStream;
 
-public class Unify implements Goal {
+public class NotEq implements Goal {
 
     private final Serializable u;
     private final Serializable v;
 
-    public Unify(Serializable u, Serializable v) {
+    public NotEq(Serializable u, Serializable v) {
         this.u = u;
         this.v = v;
     }
@@ -21,18 +22,15 @@ public class Unify implements Goal {
     @Override
     public LazyStream<SubstMap> with(SubstMap map) {
         return new Delayed<>(() -> {
-            SubstMap uMap = map.unify(u, v);
-            if (uMap.isValid()) {
-                return new Computed<>(uMap, new Empty<>());
-            } else {
+            var x = map.walk(u);
+            var y = map.walk(v);
+
+            if (Objects.equals(x, y)) {
                 return new Empty<>();
+            } else {
+                return new Computed<>(map, new Empty<>());
             }
         });
     }
 
-    @Override
-    public String toString() {
-        return "Unify [u=" + u + ", v=" + v + "]";
-    }
-    
 }

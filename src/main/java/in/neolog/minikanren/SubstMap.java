@@ -54,8 +54,10 @@ public class SubstMap implements Serializable {
     public Serializable walk(Serializable x) {
         if (x instanceof LVar) {
             var y = Option.of(x);
-            while (y.isDefined() && y.getOrNull() instanceof LVar && map.containsKey((LVar) y.getOrNull())) {
-                y = map.get((LVar) y.getOrNull());
+            var yy = y.getOrNull();
+            while (y.isDefined() && yy instanceof LVar && map.containsKey((LVar) yy)) {
+                y = map.get((LVar) yy);
+                yy = y.getOrNull();
             }
             return y.getOrElse(x);
         } else {
@@ -104,6 +106,11 @@ public class SubstMap implements Serializable {
         if (valid != other.valid)
             return false;
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return "SubstMap [valid=" + valid + ", map=" + map + "]";
     }
 
 }

@@ -4,7 +4,6 @@ import java.util.function.Function;
 
 import in.neolog.minikanren.LVar;
 import in.neolog.minikanren.SubstMap;
-import in.neolog.minikanren.stream.Delayed;
 import in.neolog.minikanren.stream.LazyStream;
 
 public class Fresh implements Goal {
@@ -17,7 +16,7 @@ public class Fresh implements Goal {
     @Override
     public LazyStream<SubstMap> with(SubstMap map) {
         Goal bound = unbound.apply(LVar.create());
-        return new Delayed<>(() -> bound.with(map));
+        return bound.with(map);
     }
 
 }

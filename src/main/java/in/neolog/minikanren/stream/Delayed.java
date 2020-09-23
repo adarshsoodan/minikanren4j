@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+
 public class Delayed<T> implements LazyStream<T> {
 
     private final Supplier<LazyStream<T>> thunk;

@@ -3,6 +3,8 @@ package in.neolog.minikanren;
 import java.io.Serializable;
 import java.util.UUID;
 
+import in.neolog.minikanren.reify.Reify;
+
 public class LVar implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -41,8 +43,9 @@ public class LVar implements Serializable {
     }
 
     @Override
-    public String toString() {
-        return "LVar [id=" + id + "]";
+    public synchronized String toString() {
+        return Reify.name(this)
+                    .orElse("LVar[" + id.toString() + "]");
     }
 
 }

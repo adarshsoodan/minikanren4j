@@ -92,4 +92,19 @@ public class TestSubstMap {
 
     }
 
+    @Test
+    public void empty() {
+        var x = LVar.create();
+        var y = LVar.create();
+
+        var smap = new SubstMap();
+
+        assertEquals(x, smap.walk(x));
+        assertEquals(y, smap.walk(y));
+        assertEquals("mango", smap.walk("mango"));
+
+        var uMap = smap.unify(x, "str1");
+        assertEquals(true, uMap.isValid());
+    }
+
 }

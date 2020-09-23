@@ -11,11 +11,11 @@ import io.vavr.collection.Map;
 
 public class Run {
 
-    public List<Map<LVar, Serializable>> run(List<LVar> lvs, Goal g, int max) {
-        LazyStream<SubstMap> stream = g.with(new SubstMap());
+    public List<Map<LVar, Serializable>> run(List<LVar> lvars, Goal goal, int max) {
+        LazyStream<SubstMap> stream = goal.with(new SubstMap());
         return Iterator.ofAll(stream.streamToIter())
-                       .map(smap -> lvs.map(lv -> Tuple.of(lv, smap.walk(lv)))
-                                       .toMap(t -> t))
+                       .map(smap -> lvars.map(lv -> Tuple.of(lv, smap.walk(lv)))
+                                         .toMap(t -> t))
                        .take(max)
                        .toList();
     }
