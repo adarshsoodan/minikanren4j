@@ -1,3 +1,7 @@
+/*
+ * Copyright Adarsh Soodan, 2020
+ * Licensed under http://www.apache.org/licenses/LICENSE-2.0
+ */
 package in.neolog.minikanren.goal;
 
 import java.util.function.Function;

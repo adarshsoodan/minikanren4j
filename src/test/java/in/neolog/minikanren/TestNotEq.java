@@ -1,9 +1,18 @@
+/*
+ * Copyright Adarsh Soodan, 2020
+ * Licensed under http://www.apache.org/licenses/LICENSE-2.0
+ */
 package in.neolog.minikanren;
 
 import static in.neolog.minikanren.MinKan.and;
 import static in.neolog.minikanren.MinKan.noteq;
 import static in.neolog.minikanren.MinKan.or;
 import static in.neolog.minikanren.MinKan.unify;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.collection.IsMapContaining.hasValue;
+import static org.hamcrest.core.AllOf.allOf;
+import static org.hamcrest.core.AnyOf.anyOf;
+import static org.hamcrest.core.IsNot.not;
 
 import java.io.Serializable;
 import java.util.function.BiFunction;
@@ -27,12 +36,20 @@ public class TestNotEq {
                 noteq(x, z));
 
         Goal goal = or(withVals.apply(11, "strz"), withVals.apply("strx", 5), withVals.apply("strx", "strz"),
-                withVals.apply("str", "str"));
+                withVals.apply("bad", "bad"));
 
         List<Map<LVar, Serializable>> results = new Run().run(List.of(x, y, z), goal, 3);
 
         try (Reify reify = Reify.reify()) {
-            results.forEach(smap -> System.out.println(smap));
+            var firstM = allOf(hasValue((Serializable) "strz"), hasValue((Serializable) 11));
+            var secondM = allOf(hasValue((Serializable) "strx"), hasValue((Serializable) 5));
+            var thirdM = allOf(hasValue((Serializable) "strx"), hasValue((Serializable) "strz"));
+            var fourthM = not(hasValue((Serializable) "bad"));
+
+            results.forEach(smap -> {
+                assertThat(smap.toJavaMap(), allOf(anyOf(firstM, secondM, thirdM), fourthM));
+            });
+            // results.forEach(smap -> System.out.println(smap));
         }
 
     }
