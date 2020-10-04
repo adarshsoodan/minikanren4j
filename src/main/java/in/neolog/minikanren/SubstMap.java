@@ -48,7 +48,7 @@ public class SubstMap implements Serializable {
         return valid;
     }
 
-    public SubstMap add(LVar lvar, Serializable right) {
+    private SubstMap add(LVar lvar, Serializable right) {
         if (valid) {
             return new SubstMap(map.put(lvar, right));
         }
