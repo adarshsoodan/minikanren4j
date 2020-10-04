@@ -16,8 +16,8 @@ public class TestSubstMap {
         var x = LVar.create();
         var y = LVar.create();
 
-        var smap = new SubstMap().add(x, y)
-                                 .add(y, "banana");
+        var smap = new SubstMap().unify(x, y)
+                                 .unify(y, "banana");
 
         assertEquals("banana", smap.walk(x));
         assertEquals("banana", smap.walk(y));
@@ -30,8 +30,8 @@ public class TestSubstMap {
         var x = LVar.create();
         var y = LVar.create();
 
-        var smap = new SubstMap().add(x, y)
-                                 .add(y, "banana");
+        var smap = new SubstMap().unify(x, y)
+                                 .unify(y, "banana");
 
         assertEquals("banana", smap.walk(x));
         assertEquals("banana", smap.walk(y));
@@ -57,13 +57,13 @@ public class TestSubstMap {
         }
         {
             var x = LVar.create();
-            var smap = new SubstMap().add(x, "banana")
+            var smap = new SubstMap().unify(x, "banana")
                                      .unify(x, "banana");
             assertEquals("banana", smap.walk(x));
         }
         {
             var x = LVar.create();
-            var smap = new SubstMap().add(x, "mango")
+            var smap = new SubstMap().unify(x, "mango")
                                      .unify(x, "banana");
             assertNotEquals("banana", smap.walk(x));
             assertEquals(SubstMap.invalidMap(), smap);
@@ -72,7 +72,7 @@ public class TestSubstMap {
             var x = LVar.create();
             var y = LVar.create();
 
-            var smap = new SubstMap().add(x, "squirrels")
+            var smap = new SubstMap().unify(x, "squirrels")
                                      .unify(y, "banana");
 
             assertEquals("banana", smap.walk(y));
@@ -87,7 +87,7 @@ public class TestSubstMap {
             var y = LVar.create();
             var z = LVar.create();
 
-            var smap = new SubstMap().add(x, y)
+            var smap = new SubstMap().unify(x, y)
                                      .unify(y, z);
 
             assertEquals(z, smap.walk(x));
