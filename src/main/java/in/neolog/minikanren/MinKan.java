@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.util.function.Function;
 
 import in.neolog.minikanren.goal.And;
+import in.neolog.minikanren.goal.Diseq;
 import in.neolog.minikanren.goal.Fresh;
 import in.neolog.minikanren.goal.Goal;
 import in.neolog.minikanren.goal.NotEq;
@@ -30,6 +31,10 @@ public class MinKan {
 
     public static Unify unify(Serializable u, Serializable v) {
         return new Unify(u, v);
+    };
+
+    public static Diseq diseq(Serializable u, Serializable v) {
+        return new Diseq(u, v);
     };
 
     public static NotEq noteq(Serializable u, Serializable v) {

@@ -5,7 +5,7 @@
 package in.neolog.minikanren;
 
 import static in.neolog.minikanren.MinKan.and;
-import static in.neolog.minikanren.MinKan.noteq;
+import static in.neolog.minikanren.MinKan.diseq;
 import static in.neolog.minikanren.MinKan.or;
 import static in.neolog.minikanren.MinKan.unify;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -24,8 +24,9 @@ import in.neolog.minikanren.reify.Reify;
 import io.vavr.collection.List;
 import io.vavr.collection.Map;
 
-public class TestNotEq {
+public class TestDiseq {
 
+    @SuppressWarnings("boxing")
     @Test
     public void test() {
         LVar x = LVar.create();
@@ -33,7 +34,7 @@ public class TestNotEq {
         LVar z = LVar.create();
 
         BiFunction<Serializable, Serializable, Goal> withVals = (xx, zz) -> and(unify(x, xx), unify(z, zz), unify(x, y),
-                noteq(x, z));
+                diseq(x, z));
 
         Goal goal = or(withVals.apply(11, "strz"), withVals.apply("strx", 5), withVals.apply("strx", "strz"),
                 withVals.apply("bad", "bad"));
@@ -49,7 +50,7 @@ public class TestNotEq {
             results.forEach(smap -> {
                 assertThat(smap.toJavaMap(), allOf(anyOf(firstM, secondM, thirdM), fourthM));
             });
-            // results.forEach(smap -> System.out.println(smap));
+            results.forEach(smap -> System.out.println(smap));
         }
 
     }
