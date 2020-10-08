@@ -87,8 +87,10 @@ public class SubstMap implements Serializable {
             return this;
         }
         if (allDiseq.contains(u) || allDiseq.contains(v)) {
-            var uEqC = cacheEqC.getOrElse(() -> Tuple.of(u, computeEqC(u)))._2;
-            var vEqC = cacheEqC.getOrElse(() -> Tuple.of(v, computeEqC(v)))._2;
+            var uEqC = cacheEqC.get(u)
+                               .getOrElse(() -> computeEqC(u));
+            var vEqC = cacheEqC.get(v)
+                               .getOrElse(() -> computeEqC(v));
 
             if (allDiseq.contains(u) && allDiseq.contains(v)) {
                 var tuvEqC = Tuple.of(uEqC, vEqC);
@@ -104,7 +106,8 @@ public class SubstMap implements Serializable {
 
             var eqOnly = unifyNonDiseq(u, v);
             if (eqOnly.valid) {
-                return new SubstMap(true, eqOnly.eq, eqOnly.eqBack, diseq, allDiseq, newCacheEqC, newDiseqAsEqC);
+                return new SubstMap(true, eqOnly.eq, eqOnly.eqBack, diseq, allDiseq.union(uvEqC), newCacheEqC,
+                        newDiseqAsEqC);
             } else {
                 return eqOnly;
             }

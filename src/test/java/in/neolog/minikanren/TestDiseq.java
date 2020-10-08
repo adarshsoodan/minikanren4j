@@ -13,6 +13,7 @@ import static org.hamcrest.collection.IsMapContaining.hasValue;
 import static org.hamcrest.core.AllOf.allOf;
 import static org.hamcrest.core.AnyOf.anyOf;
 import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.assertNotEquals;
 
 import java.io.Serializable;
 import java.util.function.BiFunction;
@@ -26,22 +27,36 @@ import io.vavr.collection.Map;
 
 public class TestDiseq {
 
+    @Test
+    public void x_eq_y_bad() {
+        try (Reify reify = Reify.reify()) {
+            LVar x = LVar.create();
+            LVar y = LVar.create();
+            var smap = new SubstMap().diseq(x, y)
+                                     .unify(x, "bad")
+                                     .unify(y, "bad")
+                                     .unify(x, y);
+
+            assertNotEquals(smap.walk(x), "bad");
+        }
+    }
+
     @SuppressWarnings("boxing")
     @Test
     public void test() {
-        LVar x = LVar.create();
-        LVar y = LVar.create();
-        LVar z = LVar.create();
-
-        BiFunction<Serializable, Serializable, Goal> withVals = (xx, zz) -> and(unify(x, xx), unify(z, zz), unify(x, y),
-                diseq(x, z));
-
-        Goal goal = or(withVals.apply(11, "strz"), withVals.apply("strx", 5), withVals.apply("strx", "strz"),
-                withVals.apply("bad", "bad"));
-
-        List<Map<LVar, Serializable>> results = new Run().run(List.of(x, y, z), goal, 3);
-
         try (Reify reify = Reify.reify()) {
+            LVar x = LVar.create();
+            LVar y = LVar.create();
+            LVar z = LVar.create();
+
+            BiFunction<Serializable, Serializable, Goal> withVals = (xx, zz) -> and(diseq(x, z), unify(x, xx),
+                    unify(z, zz), unify(x, y));
+
+            Goal goal = or(withVals.apply(11, "strz"), withVals.apply("strx", 5), withVals.apply("strx", "strz"),
+                    withVals.apply("bad", "bad"));
+
+            List<Map<LVar, Serializable>> results = new Run().run(List.of(x, y, z), goal, 3);
+
             var firstM = allOf(hasValue((Serializable) "strz"), hasValue((Serializable) 11));
             var secondM = allOf(hasValue((Serializable) "strx"), hasValue((Serializable) 5));
             var thirdM = allOf(hasValue((Serializable) "strx"), hasValue((Serializable) "strz"));
@@ -50,7 +65,6 @@ public class TestDiseq {
             results.forEach(smap -> {
                 assertThat(smap.toJavaMap(), allOf(anyOf(firstM, secondM, thirdM), fourthM));
             });
-            results.forEach(smap -> System.out.println(smap));
         }
 
     }
