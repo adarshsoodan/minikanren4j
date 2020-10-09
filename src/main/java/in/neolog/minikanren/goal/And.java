@@ -22,8 +22,8 @@ public class And implements Goal {
     @Override
     public LazyStream<SubstMap> with(SubstMap map) {
         return new Delayed<>(() -> {
-            LazyStream<SubstMap> seed = new Computed<SubstMap>(map, new Empty<>());
-            return goals.foldLeft(seed, (acc, g) -> acc.map(smap -> g.with(smap)));
+            LazyStream<SubstMap> seed = new Computed<>(map, new Empty<>());
+            return goals.foldLeft(seed, (acc, g) -> acc.map(g::with));
         });
     }
 

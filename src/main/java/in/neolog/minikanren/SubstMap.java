@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.Objects;
 import java.util.Queue;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
@@ -94,14 +94,14 @@ public class SubstMap implements Serializable {
 
             if (allDiseq.contains(u) && allDiseq.contains(v)) {
                 var tuvEqC = Tuple.of(uEqC, vEqC);
-                if (diseqAsEqC.exists(e -> tuvEqC.equals(e))) {
+                if (diseqAsEqC.exists(tuvEqC::equals)) {
                     return FAILED_INSTANCE;
                 }
             }
             var uvEqC = uEqC.union(vEqC);
             var newCacheEqC = uvEqC.foldLeft(cacheEqC, (mapEqC, key) -> mapEqC.put(key, uvEqC));
 
-            Function<Set<Serializable>, Set<Serializable>> ef = e1 -> (e1.equals(uEqC) || e1.equals(vEqC)) ? uvEqC : e1;
+            UnaryOperator<Set<Serializable>> ef = e1 -> (e1.equals(uEqC) || e1.equals(vEqC)) ? uvEqC : e1;
             var newDiseqAsEqC = diseqAsEqC.map(t2 -> t2.map(ef, ef));
 
             var eqOnly = unifyNonDiseq(u, v);
@@ -120,7 +120,7 @@ public class SubstMap implements Serializable {
         if (!valid) {
             return this;
         }
-        var uvEqC = cacheEqC.computeIfAbsent(u, x -> computeEqC(x))._2.computeIfAbsent(v, x -> computeEqC(x))._2;
+        var uvEqC = cacheEqC.computeIfAbsent(u, this::computeEqC)._2.computeIfAbsent(v, this::computeEqC)._2;
         var uEqC = uvEqC.get(u)
                         .get();
         var vEqC = uvEqC.get(v)

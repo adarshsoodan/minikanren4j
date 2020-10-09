@@ -21,8 +21,7 @@ public class Or implements Goal {
     public LazyStream<SubstMap> with(SubstMap map) {
         return new Delayed<>(() -> {
             var streams = goals.map(g -> g.with(map));
-            var merged = streams.reduceLeft((left, right) -> left.mergeStreams(right));
-            return merged;
+            return streams.reduceLeft((left, right) -> left.mergeStreams(right));
         });
     }
 
