@@ -4,10 +4,7 @@
  */
 package in.neolog.minikanren;
 
-import static in.neolog.minikanren.MinKan.and;
 import static in.neolog.minikanren.MinKan.diseq;
-import static in.neolog.minikanren.MinKan.or;
-import static in.neolog.minikanren.MinKan.unify;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsMapContaining.hasValue;
 import static org.hamcrest.core.AllOf.allOf;
@@ -43,17 +40,20 @@ public class TestDiseq {
 
     @SuppressWarnings("boxing")
     @Test
-    public void test() {
+    public void x_eq_y_diseq_z() {
         try (Reify reify = Reify.reify()) {
             LVar x = LVar.create();
             LVar y = LVar.create();
             LVar z = LVar.create();
 
-            BiFunction<Serializable, Serializable, Goal> withVals = (xx, zz) -> and(diseq(x, z), unify(x, xx),
-                    unify(z, zz), unify(x, y));
+            BiFunction<Serializable, Serializable, Goal> withVals = (xx, zz) -> diseq(x, z).unify(x, xx)
+                                                                                           .unify(z, zz)
+                                                                                           .unify(x, y);
 
-            Goal goal = or(withVals.apply(11, "strz"), withVals.apply("strx", 5), withVals.apply("strx", "strz"),
-                    withVals.apply("bad", "bad"));
+            Goal goal = withVals.apply(11, "strz")
+                                .or(withVals.apply("strx", 5))
+                                .or(withVals.apply("strx", "strz"))
+                                .or(withVals.apply("bad", "bad"));
 
             List<Map<LVar, Serializable>> results = new Run().run(List.of(x, y, z), goal, 3);
 

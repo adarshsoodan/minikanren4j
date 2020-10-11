@@ -4,10 +4,10 @@
  */
 package in.neolog.minikanren.stream;
 
-import java.util.Iterator;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import io.vavr.collection.Stream;
 
 public class Delayed<T> implements LazyStream<T> {
 
@@ -32,13 +32,15 @@ public class Delayed<T> implements LazyStream<T> {
     public LazyStream<T> realize() {
         var ls = thunk.get();
         while (ls instanceof Delayed) {
-            ls = ls.realize();
+            Delayed<T> dls = (Delayed<T>) ls;
+            var nestedThunk = dls.thunk;
+            ls = nestedThunk.get();
         }
         return ls;
     }
 
     @Override
-    public Iterator<T> streamToIter() {
+    public Stream<T> streamToIter() {
         return realize().streamToIter();
     }
 

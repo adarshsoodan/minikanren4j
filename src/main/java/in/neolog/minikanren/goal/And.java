@@ -15,15 +15,15 @@ public class And implements Goal {
 
     private final List<Goal> goals;
 
-    public And(Goal... goals) {
-        this.goals = List.of(goals);
+    public And(List<Goal> goals) {
+        this.goals = goals;
     }
 
     @Override
     public LazyStream<SubstMap> with(SubstMap map) {
         return new Delayed<>(() -> {
             LazyStream<SubstMap> seed = new Computed<>(map, new Empty<>());
-            return goals.foldLeft(seed, (acc, g) -> acc.map(g::with));
+            return goals.foldRight(seed, (g, acc) -> acc.map(g::with));
         });
     }
 

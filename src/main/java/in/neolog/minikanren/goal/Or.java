@@ -13,8 +13,8 @@ public class Or implements Goal {
 
     private final List<Goal> goals;
 
-    public Or(Goal... goals) {
-        this.goals = List.of(goals);
+    public Or(List<Goal> goals) {
+        this.goals = goals;
     }
 
     @Override
