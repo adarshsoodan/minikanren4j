@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import in.neolog.minikanren.reify.Reify;
+import in.neolog.minikanren.util.Hashed;
 import io.vavr.collection.HashSet;
 
 public class TestSubstMap {
@@ -109,7 +110,7 @@ public class TestSubstMap {
         try (Reify reify = Reify.reify()) {
             var smap = new SubstMap();
 
-            assertEquals(HashSet.of("str"), smap.computeEqC("str"));
+            assertEquals(Hashed.of(HashSet.of(Hashed.of("str"))), smap.computeEqC(Hashed.of("str")));
         }
         try (Reify reify = Reify.reify()) {
             var x = LVar.create();
@@ -119,7 +120,8 @@ public class TestSubstMap {
             var smap = new SubstMap().unify(x, y)
                                      .unify(y, z);
 
-            assertEquals(HashSet.of(x, y, z), smap.computeEqC(x));
+            assertEquals(Hashed.of(HashSet.of(Hashed.of(x), Hashed.of(y), Hashed.of(z))),
+                    smap.computeEqC(Hashed.of(x)));
         }
         try (Reify reify = Reify.reify()) {
             var x = LVar.create();
@@ -129,7 +131,8 @@ public class TestSubstMap {
             var smap = new SubstMap().unify(x, y)
                                      .unify(x, z);
 
-            assertEquals(HashSet.of(x, y, z), smap.computeEqC(x));
+            assertEquals(Hashed.of(HashSet.of(Hashed.of(x), Hashed.of(y), Hashed.of(z))),
+                    smap.computeEqC(Hashed.of(x)));
         }
         try (Reify reify = Reify.reify()) {
             var x = LVar.create();
@@ -138,7 +141,8 @@ public class TestSubstMap {
 
             var smap = new SubstMap().unify(x, y)
                                      .unify(z, x);
-            assertEquals(HashSet.of(x, y, z), smap.computeEqC(x));
+            assertEquals(Hashed.of(HashSet.of(Hashed.of(x), Hashed.of(y), Hashed.of(z))),
+                    smap.computeEqC(Hashed.of(x)));
         }
     }
 

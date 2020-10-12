@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Queue;
 import java.util.function.UnaryOperator;
 
+import in.neolog.minikanren.util.Hashed;
 import io.vavr.Tuple;
 import io.vavr.Tuple2;
 import io.vavr.collection.HashMap;
@@ -24,23 +25,26 @@ public class SubstMap implements Serializable {
 
     private static final SubstMap FAILED_INSTANCE = new SubstMap(false);
 
-    private final boolean                              valid;
-    private final Map<LVar, Serializable>              eq;
-    private final Map<Serializable, Set<Serializable>> eqBack;
+    private final boolean valid;
 
-    private final Set<Tuple2<Serializable, Serializable>>           diseq;
-    private final Set<Serializable>                                 allDiseq;
-    private final Map<Serializable, Set<Serializable>>              cacheEqC;
-    private final Set<Tuple2<Set<Serializable>, Set<Serializable>>> diseqAsEqC;
+    // Use Hashed for all except LVar.
+    private final Map<LVar, Serializable>                              eq;
+    private final Map<Hashed<Serializable>, Set<Hashed<Serializable>>> eqBack;
+
+    private final Set<Tuple2<Hashed<Serializable>, Hashed<Serializable>>>                           diseq;
+    private final Set<Hashed<Serializable>>                                                         allDiseq;
+    private final Map<Hashed<Serializable>, Hashed<Set<Hashed<Serializable>>>>                      cacheEqC;
+    private final Set<Tuple2<Hashed<Set<Hashed<Serializable>>>, Hashed<Set<Hashed<Serializable>>>>> diseqAsEqC;
 
     public SubstMap() {
         this(true);
     }
 
-    private SubstMap(boolean valid, Map<LVar, Serializable> eq, Map<Serializable, Set<Serializable>> eqBack,
-            Set<Tuple2<Serializable, Serializable>> diseq, Set<Serializable> allDiseq,
-            Map<Serializable, Set<Serializable>> cacheEqC,
-            Set<Tuple2<Set<Serializable>, Set<Serializable>>> diseqAsEqC) {
+    private SubstMap(boolean valid, Map<LVar, Serializable> eq,
+            Map<Hashed<Serializable>, Set<Hashed<Serializable>>> eqBack,
+            Set<Tuple2<Hashed<Serializable>, Hashed<Serializable>>> diseq, Set<Hashed<Serializable>> allDiseq,
+            Map<Hashed<Serializable>, Hashed<Set<Hashed<Serializable>>>> cacheEqC,
+            Set<Tuple2<Hashed<Set<Hashed<Serializable>>>, Hashed<Set<Hashed<Serializable>>>>> diseqAsEqC) {
         this.valid = valid;
         this.eq = eq;
         this.eqBack = eqBack;
@@ -86,27 +90,32 @@ public class SubstMap implements Serializable {
         if (!valid) {
             return this;
         }
-        if (allDiseq.contains(u) || allDiseq.contains(v)) {
-            var uEqC = cacheEqC.get(u)
-                               .getOrElse(() -> computeEqC(u));
-            var vEqC = cacheEqC.get(v)
-                               .getOrElse(() -> computeEqC(v));
+        var hu = Hashed.of(u);
+        var hv = Hashed.of(v);
+        if (allDiseq.contains(hu) || allDiseq.contains(hv)) {
+            var uEqC = cacheEqC.get(hu)
+                               .getOrElse(() -> computeEqC(hu));
+            var vEqC = cacheEqC.get(hv)
+                               .getOrElse(() -> computeEqC(hv));
 
-            if (allDiseq.contains(u) && allDiseq.contains(v)) {
+            if (allDiseq.contains(hu) && allDiseq.contains(hv)) {
                 var tuvEqC = Tuple.of(uEqC, vEqC);
                 if (diseqAsEqC.exists(tuvEqC::equals)) {
                     return FAILED_INSTANCE;
                 }
             }
-            var uvEqC = uEqC.union(vEqC);
-            var newCacheEqC = uvEqC.foldLeft(cacheEqC, (mapEqC, key) -> mapEqC.put(key, uvEqC));
+            var uvEqC = Hashed.of(uEqC.obj()
+                                      .union(vEqC.obj()));
+            var newCacheEqC = uvEqC.obj()
+                                   .foldLeft(cacheEqC, (mapEqC, key) -> mapEqC.put(key, uvEqC));
 
-            UnaryOperator<Set<Serializable>> ef = e1 -> (e1.equals(uEqC) || e1.equals(vEqC)) ? uvEqC : e1;
+            UnaryOperator<Hashed<Set<Hashed<Serializable>>>> ef =
+                                                                e1 -> (e1.equals(uEqC) || e1.equals(vEqC)) ? uvEqC : e1;
             var newDiseqAsEqC = diseqAsEqC.map(t2 -> t2.map(ef, ef));
 
             var eqOnly = unifyNonDiseq(u, v);
             if (eqOnly.valid) {
-                return new SubstMap(true, eqOnly.eq, eqOnly.eqBack, diseq, allDiseq.union(uvEqC), newCacheEqC,
+                return new SubstMap(true, eqOnly.eq, eqOnly.eqBack, diseq, allDiseq.union(uvEqC.obj()), newCacheEqC,
                         newDiseqAsEqC);
             } else {
                 return eqOnly;
@@ -120,21 +129,26 @@ public class SubstMap implements Serializable {
         if (!valid) {
             return this;
         }
-        var uvEqC = cacheEqC.computeIfAbsent(u, this::computeEqC)._2.computeIfAbsent(v, this::computeEqC)._2;
-        var uEqC = uvEqC.get(u)
+        var hu = Hashed.of(u);
+        var hv = Hashed.of(v);
+        var uvEqC = cacheEqC.computeIfAbsent(hu, this::computeEqC)._2.computeIfAbsent(hv, this::computeEqC)._2;
+        var uEqC = uvEqC.get(hu)
                         .get();
-        var vEqC = uvEqC.get(v)
+        var vEqC = uvEqC.get(hv)
                         .get();
         if (uEqC.equals(vEqC)) {
             return FAILED_INSTANCE;
         }
 
-        var newDiseq = diseq.add(Tuple.of(u, v))
-                            .add(Tuple.of(v, u));
-        var newAllDiseq = allDiseq.addAll(uEqC.union(vEqC));
+        var newDiseq = diseq.add(Tuple.of(hu, hv))
+                            .add(Tuple.of(hv, hu));
+        var newAllDiseq = allDiseq.addAll(uEqC.obj()
+                                              .union(vEqC.obj()));
 
-        var uCacheEqC = uEqC.foldLeft(uvEqC, (mapEqC, key) -> mapEqC.put(key, uEqC));
-        var uvCacheEqC = vEqC.foldLeft(uCacheEqC, (mapEqC, key) -> mapEqC.put(key, vEqC));
+        var uCacheEqC = uEqC.obj()
+                            .foldLeft(uvEqC, (mapEqC, key) -> mapEqC.put(key, uEqC));
+        var uvCacheEqC = vEqC.obj()
+                             .foldLeft(uCacheEqC, (mapEqC, key) -> mapEqC.put(key, vEqC));
 
         var newDiseqAsEqC = diseqAsEqC.add(Tuple.of(uEqC, vEqC))
                                       .add(Tuple.of(vEqC, uEqC));
@@ -142,14 +156,17 @@ public class SubstMap implements Serializable {
         return new SubstMap(true, eq, eqBack, newDiseq, newAllDiseq, uvCacheEqC, newDiseqAsEqC);
     }
 
-    public Set<Serializable> computeEqC(Serializable x) {
-        return walkGather(x).add(x);
+    public Hashed<Set<Hashed<Serializable>>> computeEqC(Hashed<Serializable> x) {
+        return Hashed.of(walkGather(x).obj()
+                                      .add(x));
     }
 
     private SubstMap add(LVar lvar, Serializable right) {
         if (valid) {
+            var hlvar = Hashed.<Serializable>of(lvar);
+            var hright = Hashed.of(right);
             var newEq = eq.put(lvar, right);
-            var newEqBack = eqBack.put(right, HashSet.of(lvar), (pre, now) -> pre.add(lvar));
+            var newEqBack = eqBack.put(hright, HashSet.of(hlvar), (pre, now) -> pre.add(hlvar));
             return new SubstMap(true, newEq, newEqBack, diseq, allDiseq, cacheEqC, diseqAsEqC);
         }
         return this;
@@ -170,14 +187,14 @@ public class SubstMap implements Serializable {
         }
     }
 
-    private Set<Serializable> walkGather(Serializable x) {
-        return backWalkGather(walk(x));
+    private Hashed<Set<Hashed<Serializable>>> walkGather(Hashed<Serializable> x) {
+        return backWalkGather(Hashed.of(walk(x.obj())));
     }
 
-    private Set<Serializable> backWalkGather(Serializable x) {
-        Set<Serializable> ret = HashSet.empty();
+    private Hashed<Set<Hashed<Serializable>>> backWalkGather(Hashed<Serializable> x) {
+        Set<Hashed<Serializable>> ret = HashSet.empty();
 
-        Queue<Option<Set<Serializable>>> q = new LinkedList<>();
+        Queue<Option<Set<Hashed<Serializable>>>> q = new LinkedList<>();
         q.add(Option.of(HashSet.of(x)));
         while (!q.isEmpty()) {
             var y = q.poll();
@@ -188,7 +205,7 @@ public class SubstMap implements Serializable {
             }
         }
 
-        return ret;
+        return Hashed.of(ret);
     }
 
     @Override
