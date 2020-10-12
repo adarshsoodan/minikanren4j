@@ -6,69 +6,60 @@ package in.neolog.minikanren;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
+
+import in.neolog.minikanren.reify.Reify;
+import io.vavr.collection.HashSet;
 
 public class TestSubstMap {
 
     @Test
-    public void add() {
-        var x = LVar.create();
-        var y = LVar.create();
-
-        var smap = new SubstMap().unify(x, y)
-                                 .unify(y, "banana");
-
-        assertEquals("banana", smap.walk(x));
-        assertEquals("banana", smap.walk(y));
-        assertEquals("mango", smap.walk("mango"));
-
-    }
-
-    @Test
     public void walk() {
-        var x = LVar.create();
-        var y = LVar.create();
+        try (Reify reify = Reify.reify()) {
+            var x = LVar.create();
+            var y = LVar.create();
 
-        var smap = new SubstMap().unify(x, y)
-                                 .unify(y, "banana");
+            var smap = new SubstMap().unify(x, y)
+                                     .unify(y, "banana");
 
-        assertEquals("banana", smap.walk(x));
-        assertEquals("banana", smap.walk(y));
-        assertEquals("mango", smap.walk("mango"));
-
+            assertEquals("banana", smap.walk(x));
+            assertEquals("banana", smap.walk(y));
+            assertEquals("mango", smap.walk("mango"));
+        }
     }
 
     @Test
     public void unify() {
-        {
+        try (Reify reify = Reify.reify()) {
             SubstMap smap = new SubstMap().unify("mango", "banana");
             assertEquals(SubstMap.invalidMap(), smap);
         }
-        {
+        try (Reify reify = Reify.reify()) {
             var x = LVar.create();
             var smap = new SubstMap().unify(x, "banana");
             assertEquals("banana", smap.walk(x));
         }
-        {
+        try (Reify reify = Reify.reify()) {
             var x = LVar.create();
             var smap = new SubstMap().unify("banana", x);
             assertEquals("banana", smap.walk(x));
         }
-        {
+        try (Reify reify = Reify.reify()) {
             var x = LVar.create();
             var smap = new SubstMap().unify(x, "banana")
                                      .unify(x, "banana");
             assertEquals("banana", smap.walk(x));
         }
-        {
+        try (Reify reify = Reify.reify()) {
             var x = LVar.create();
             var smap = new SubstMap().unify(x, "mango")
                                      .unify(x, "banana");
             assertNotEquals("banana", smap.walk(x));
             assertEquals(SubstMap.invalidMap(), smap);
         }
-        {
+        try (Reify reify = Reify.reify()) {
             var x = LVar.create();
             var y = LVar.create();
 
@@ -82,7 +73,7 @@ public class TestSubstMap {
             assertNotEquals("squirrels", smap.walk(y));
 
         }
-        {
+        try (Reify reify = Reify.reify()) {
             var x = LVar.create();
             var y = LVar.create();
             var z = LVar.create();
@@ -98,17 +89,57 @@ public class TestSubstMap {
 
     @Test
     public void empty() {
-        var x = LVar.create();
-        var y = LVar.create();
+        try (Reify reify = Reify.reify()) {
+            var x = LVar.create();
+            var y = LVar.create();
 
-        var smap = new SubstMap();
+            var smap = new SubstMap();
 
-        assertEquals(x, smap.walk(x));
-        assertEquals(y, smap.walk(y));
-        assertEquals("mango", smap.walk("mango"));
+            assertEquals(x, smap.walk(x));
+            assertEquals(y, smap.walk(y));
+            assertEquals("mango", smap.walk("mango"));
 
-        var uMap = smap.unify(x, "str1");
-        assertEquals(true, uMap.isValid());
+            var uMap = smap.unify(x, "str1");
+            assertTrue(uMap.isValid());
+        }
+    }
+
+    @Test
+    public void eqc() {
+        try (Reify reify = Reify.reify()) {
+            var smap = new SubstMap();
+
+            assertEquals(HashSet.of("str"), smap.computeEqC("str"));
+        }
+        try (Reify reify = Reify.reify()) {
+            var x = LVar.create();
+            var y = LVar.create();
+            var z = LVar.create();
+
+            var smap = new SubstMap().unify(x, y)
+                                     .unify(y, z);
+
+            assertEquals(HashSet.of(x, y, z), smap.computeEqC(x));
+        }
+        try (Reify reify = Reify.reify()) {
+            var x = LVar.create();
+            var y = LVar.create();
+            var z = LVar.create();
+
+            var smap = new SubstMap().unify(x, y)
+                                     .unify(x, z);
+
+            assertEquals(HashSet.of(x, y, z), smap.computeEqC(x));
+        }
+        try (Reify reify = Reify.reify()) {
+            var x = LVar.create();
+            var y = LVar.create();
+            var z = LVar.create();
+
+            var smap = new SubstMap().unify(x, y)
+                                     .unify(z, x);
+            assertEquals(HashSet.of(x, y, z), smap.computeEqC(x));
+        }
     }
 
 }

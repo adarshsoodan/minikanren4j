@@ -4,8 +4,9 @@
  */
 package in.neolog.minikanren.stream;
 
-import java.util.Iterator;
 import java.util.function.Function;
+
+import io.vavr.collection.Stream;
 
 public interface LazyStream<T> {
 
@@ -15,6 +16,6 @@ public interface LazyStream<T> {
 
     LazyStream<T> realize();
 
-    Iterator<T> streamToIter();
+    Stream<T> streamToIter();
 
 }

@@ -5,6 +5,7 @@
 package in.neolog.minikanren;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 
 import in.neolog.minikanren.reify.Reify;
@@ -41,9 +42,7 @@ public class LVar implements Serializable {
         if (getClass() != obj.getClass())
             return false;
         LVar other = (LVar) obj;
-        if (!id.equals(other.id))
-            return false;
-        return true;
+        return Objects.equals(id, other.id);
     }
 
     @Override

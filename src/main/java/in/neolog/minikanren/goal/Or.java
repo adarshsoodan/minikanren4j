@@ -13,16 +13,15 @@ public class Or implements Goal {
 
     private final List<Goal> goals;
 
-    public Or(Goal... goals) {
-        this.goals = List.of(goals);
+    public Or(List<Goal> goals) {
+        this.goals = goals;
     }
 
     @Override
     public LazyStream<SubstMap> with(SubstMap map) {
         return new Delayed<>(() -> {
             var streams = goals.map(g -> g.with(map));
-            var merged = streams.reduceLeft((left, right) -> left.mergeStreams(right));
-            return merged;
+            return streams.reduceLeft((left, right) -> left.mergeStreams(right));
         });
     }
 

@@ -4,9 +4,9 @@
  */
 package in.neolog.minikanren.stream;
 
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.function.Function;
+
+import io.vavr.collection.Stream;
 
 public class Empty<T> implements LazyStream<T> {
 
@@ -26,8 +26,8 @@ public class Empty<T> implements LazyStream<T> {
     }
 
     @Override
-    public Iterator<T> streamToIter() {
-        return Collections.emptyIterator();
+    public Stream<T> streamToIter() {
+        return Stream.empty();
     }
 
 }

@@ -38,5 +38,5 @@ public class Unify implements Goal {
     public String toString() {
         return "Unify [u=" + u + ", v=" + v + "]";
     }
-    
+
 }

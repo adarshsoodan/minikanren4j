@@ -28,11 +28,7 @@ public class Reify implements AutoCloseable {
 
     @Override
     public void close() {
-        simpleNames.set(null);
-    }
-
-    public static void resetSimpleNames() {
-        simpleNames.set(new Reify());
+        simpleNames.remove();
     }
 
     public static Optional<String> name(LVar lv) {

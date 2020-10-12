@@ -4,10 +4,9 @@
  */
 package in.neolog.minikanren.stream;
 
-import java.util.Iterator;
 import java.util.function.Function;
 
-import io.vavr.collection.List;
+import io.vavr.collection.Stream;
 
 public class Computed<T> implements LazyStream<T> {
 
@@ -21,7 +20,7 @@ public class Computed<T> implements LazyStream<T> {
 
     @Override
     public LazyStream<T> mergeStreams(LazyStream<T> other) {
-        return new Computed<>(head, other.mergeStreams(next));
+        return new Computed<>(head, next.mergeStreams(other));
     }
 
     @Override
@@ -36,10 +35,8 @@ public class Computed<T> implements LazyStream<T> {
     }
 
     @Override
-    public Iterator<T> streamToIter() {
-        return List.of(head)
-                   .iterator()
-                   .concat(next.streamToIter());
+    public Stream<T> streamToIter() {
+        return Stream.cons(head, () -> next.streamToIter());
     }
 
 }
